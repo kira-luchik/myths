@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мифы о здоровье — тест</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f7f4; --card:#ffffff; --text:#1f2a24; --muted:#5f6e66;
+    --accent:#2e9d6a; --accent-soft:#e2f4ea; --wrong:#d9534f; --wrong-soft:#fbe5e4;
+    --border:#d8e3dc;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#141a17; --card:#1e2622; --text:#e8efe9; --muted:#9aaba1;
+      --accent:#4cc48c; --accent-soft:#1f3a2c; --wrong:#ef7470; --wrong-soft:#3d2221;
+      --border:#2e3a33;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Nunito',system-ui,sans-serif;line-height:1.5}
+  .wrap{max-width:680px;margin:0 auto;padding:32px 16px 48px}
+  header{text-align:center;margin-bottom:24px}
+  h1{font-size:2rem;margin:0 0 6px;font-weight:800}
+  .sub{color:var(--muted);margin:0}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;box-shadow:0 4px 18px rgba(0,0,0,.05)}
+  .progress{height:8px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:18px}
+  .bar{height:100%;width:0;background:var(--accent);transition:width .3s}
+  .counter{color:var(--muted);font-size:.9rem;margin-bottom:6px}
+  .q{font-size:1.3rem;font-weight:800;margin:0 0 18px}
+  .opt{display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;border:2px solid var(--border);
+       border-radius:12px;background:transparent;color:var(--text);font:inherit;cursor:pointer;transition:.15s}
+  .opt:hover:not(:disabled){border-color:var(--accent)}
+  .opt:disabled{cursor:default}
+  .opt.correct{border-color:var(--accent);background:var(--accent-soft)}
+  .opt.wrong{border-color:var(--wrong);background:var(--wrong-soft)}
+  .explain{display:none;margin-top:8px;padding:14px 16px;border-radius:12px;background:var(--accent-soft)}
+  .explain b{display:block;margin-bottom:4px}
+  .btn{display:inline-block;margin-top:16px;padding:12px 22px;border:none;border-radius:12px;background:var(--accent);
+       color:#fff;font:inherit;font-weight:800;cursor:pointer}
+  .hidden{display:none}
+  .score{font-size:3rem;font-weight:800;color:var(--accent);text-align:center;margin:8px 0}
+  .result-text{text-align:center;color:var(--muted)}
+  .summary{margin-top:20px;padding-left:20px}
+  .summary li{margin-bottom:8px}
+  footer{text-align:center;color:var(--muted);font-size:.85rem;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Мифы о здоровье</h1>
+    <p class="sub">5 вопросов о спорте, сне и питании. Проверь, где правда, а где миф!</p>
+  </header>
+
+  <div class="card" id="quiz">
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="counter" id="counter"></div>
+    <p class="q" id="question"></p>
+    <div id="options"></div>
+    <div class="explain" id="explain"></div>
+    <button class="btn hidden" id="next">Дальше →</button>
+  </div>
+
+  <div class="card hidden" id="result">
+    <p class="result-text">Твой результат</p>
+    <div class="score" id="score"></div>
+    <p class="result-text" id="verdict"></p>
+    <ul class="summary" id="summary"></ul>
+    <div style="text-align:center"><button class="btn" id="restart">Пройти ещё раз</button></div>
+  </div>
+
+  <footer>Проект «Мифы о здоровье»</footer>
+</div>
+
+<script>
+const questions = [
+  {
+    q: "Правда ли, что без тренировок человек обязательно теряет форму?",
+    options: [
+      "Да, мышцы пропадают уже через пару дней",
+      "Нет, если однажды натренировался — форма сохранится навсегда",
+      "Да, но постепенно: заметный спад начинается через 2–4 недели"
+    ],
+    correct: 2,
+    short: "Форма уходит постепенно, но уходит.",
+    explain: "Без нагрузки организм действительно «экономит» ресурсы: выносливость начинает заметно снижаться через 2–4 недели, сила держится дольше. Но за несколько дней отдыха ничего не теряется, а чтобы сохранить форму, хватит и 1–2 тренировок в неделю. К тому же «мышечная память» помогает быстрее вернуться к прежнему уровню."
+  },
+  {
+    q: "Можно ли похудеть только с помощью правильного питания?",
+    options: [
+      "Да, вес снижается при дефиците калорий, но спорт помогает сохранить мышцы и результат",
+      "Нет, без спорта похудеть невозможно",
+      "Да, и спорт для здоровья вообще не нужен"
+    ],
+    correct: 0,
+    short: "Можно, но вместе со спортом лучше.",
+    explain: "Вес уходит, когда человек тратит больше энергии, чем получает с едой, поэтому похудеть только за счёт питания можно. Но без движения вместе с жиром уходят и мышцы, а вес легче набрать обратно. Физическая активность помогает сохранить мышцы, удержать результат и укрепляет сердце."
+  },
+  {
+    q: "Обязательно ли проходить 10 000 шагов в день?",
+    options: [
+      "Да, если меньше — ходьба бесполезна",
+      "Нет, это число из рекламы, а польза заметна уже с 6–8 тысяч шагов",
+      "Нет, шаги вообще не влияют на здоровье"
+    ],
+    correct: 1,
+    short: "10 000 — не научная норма, а рекламная цифра.",
+    explain: "Цифра появилась в 1960-х в Японии: так назывался рекламируемый шагомер. Исследования показывают, что польза для здоровья растёт уже с 6–8 тысяч шагов в день, а дальше эффект увеличивается медленнее. Главное правило: любые шаги лучше, чем их отсутствие."
+  },
+  {
+    q: "Полезно ли спать по 5–6 часов?",
+    options: [
+      "Да, если к этому привыкнуть",
+      "Да, сон — это просто потерянное время",
+      "Нет: взрослым нужно 7–9 часов сна, подросткам — 8–10"
+    ],
+    correct: 2,
+    short: "5–6 часов — это недосып.",
+    explain: "Во время сна восстанавливаются мышцы, мозг «сортирует» информацию, работает иммунитет. Постоянный недосып ухудшает память и внимание, повышает риск простуд, лишнего веса и болезней сердца. «Привыкнуть» нельзя: человек просто перестаёт замечать, что стал работать хуже."
+  },
+  {
+    q: "Можно ли заниматься спортом при любом самочувствии?",
+    options: [
+      "Нет: при температуре и ломоте — только отдых, при лёгком насморке — лёгкая нагрузка",
+      "Да, болезнь можно «выпотеть» на тренировке",
+      "Нет, при малейшем недомогании нужно лежать неделю"
+    ],
+    correct: 0,
+    short: "При температуре — никакого спорта.",
+    explain: "Врачи советуют правило «выше шеи»: если только лёгкий насморк, можно немного подвигаться. Если есть температура, ломота, кашель или слабость, тренировки опасны — инфекция может дать осложнения на сердце. После болезни нагрузку нужно возвращать постепенно."
+  }
+];
+
+let current = 0, score = 0, answers = [];
+const $ = id => document.getElementById(id);
+
+function show(){
+  const item = questions[current];
+  $("bar").style.width = (current / questions.length * 100) + "%";
+  $("counter").textContent = `Вопрос ${current + 1} из ${questions.length}`;
+  $("question").textContent = item.q;
+  $("explain").style.display = "none";
+  $("next").classList.add("hidden");
+  const box = $("options");
+  box.innerHTML = "";
+  item.options.forEach((text, i) => {
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.textContent = text;
+    b.onclick = () => choose(i);
+    box.appendChild(b);
+  });
+}
+
+function choose(i){
+  const item = questions[current];
+  const btns = document.querySelectorAll(".opt");
+  btns.forEach(b => b.disabled = true);
+  btns[item.correct].classList.add("correct");
+  const right = i === item.correct;
+  if(right) score++; else btns[i].classList.add("wrong");
+  answers.push(right);
+  $("explain").innerHTML = `<b>${right ? "✅ Верно!" : "❌ Не совсем."} ${item.short}</b>${item.explain}`;
+  $("explain").style.display = "block";
+  $("next").textContent = current === questions.length - 1 ? "Узнать результат" : "Дальше →";
+  $("next").classList.remove("hidden");
+}
+
+$("next").onclick = () => {
+  current++;
+  if(current < questions.length) show(); else finish();
+};
+
+function finish(){
+  $("quiz").classList.add("hidden");
+  $("result").classList.remove("hidden");
+  $("score").textContent = `${score} / ${questions.length}`;
+  $("verdict").textContent =
+    score === 5 ? "Отлично! Мифы тебя не обманут 💪" :
+    score >= 3 ? "Хороший результат! Почти все мифы разоблачены." :
+    "Есть над чем подумать — посмотри правильные ответы ниже.";
+  $("summary").innerHTML = questions.map((q, i) =>
+    `<li>${answers[i] ? "✅" : "❌"} <b>${q.q}</b><br>${q.short}</li>`).join("");
+}
+
+$("restart").onclick = () => {
+  current = 0; score = 0; answers = [];
+  $("result").classList.add("hidden");
+  $("quiz").classList.remove("hidden");
+  show();
+};
+
+show();
+</script>
+</body>
+</html>
